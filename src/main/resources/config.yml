@@ -1,0 +1,56 @@
+# DSOAuctionHouse Configuration
+
+# Database settings
+database:
+  host: localhost
+  port: 3306
+  name: dsoauctionhouse
+  user: root
+  password: password
+  useSSL: false
+  autoReconnect: true
+
+# GUI settings
+gui:
+  main_title: "&1&lAuction House"
+  player_items_title_template: "&1&l{player_name}'s Auctions"
+  mailbox_title: "&1&lYour Mailbox"
+  filler_item: BLACK_STAINED_GLASS_PANE
+  buttons:
+    previous_page: "&cPrevious Page"
+    next_page: "&aNext Page"
+    back: "&eBack"
+    confirm_purchase_lmb: "&aBuy All (LMB)"
+    confirm_purchase_rmb: "&aBuy One (RMB)"
+    confirm_purchase_mmb: "&aBuy Amount (MMB)"
+
+# Auction limits by rank
+limits:
+  default: 20
+  premium: 40
+  deluxe: 60
+
+# Messages
+messages:
+  prefix: "&7[&6AH&7] "
+  player_only_command: "&cThis command can only be used by players."
+  no_permission: "&cYou don't have permission to use this command."
+  item_not_in_hand: "&cYou must hold an item in your hand to sell it."
+  invalid_price_format: "&cInvalid price format. Use a number optionally followed by k, m, or b (e.g., 100, 50k, 2.5m, 1b)."
+  cannot_sell_air: "&cYou cannot sell air!"
+  must_be_positive_amount: "&cThe amount must be positive."
+  auction_limit_reached: "&cYou have reached your auction limit of {limit} items."
+  item_listed_successfully: "&aItem listed successfully for ${price}."
+  error_listing_item: "&cAn error occurred while listing your item. Please try again."
+  auction_not_found: "&cAuction not found or has already been sold."
+  not_enough_money: "&cYou don't have enough money to make this purchase."
+  item_purchased: "&aYou purchased {item_name} for ${price}."
+  item_sold: "&aYour {item_name} was sold for ${price}."
+  mailbox_money_claimed: "&aYou claimed ${amount} from your mailbox."
+  mailbox_item_claimed: "&aYou claimed {item_name} from your mailbox."
+  inventory_full_claiming: "&cYour inventory is full. Make space before claiming this item."
+  invalid_amount_entered: "&cInvalid amount entered. Please enter a number."
+  enter_amount_to_buy: "&eEnter the amount you want to buy in chat. Type 'cancel' to abort."
+  purchase_cancelled: "&cPurchase cancelled."
+  player_not_found: "&cPlayer '{player_name}' not found or has no auctions."
+  search_no_results: "&cNo players found with items matching your search."
