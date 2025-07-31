@@ -40,7 +40,8 @@ public class GUIManager {
     private static final int MAILBOX_BUTTON_SLOT = 46;
     private static final int PREV_PAGE_SLOT = 45;
     private static final int NEXT_PAGE_SLOT = 53;
-    private static final int BACK_BUTTON_SLOT = 49;
+    private static final int MAILBOX_SLOT = 46; // Bottom-left slot in main GUI
+    private static final int BACK_BUTTON_SLOT = 49; // Back navigation in sub GUIs
 
     public GUIManager(DSOAuctionHouse plugin) {
         this.plugin = plugin;
@@ -120,12 +121,14 @@ public class GUIManager {
         }
 
         // Add mailbox shortcut
-        inventory.setItem(MAILBOX_BUTTON_SLOT, createNavigationButton(
+        inventory.setItem(MAILBOX_SLOT, createNavigationButton(
+
                 Material.CHEST, plugin.getConfig().getString("gui.buttons.mailbox", "&eMailbox")));
 
         // Fill remaining slots with filler item
         for (int i = ITEMS_PER_PAGE; i < INVENTORY_SIZE; i++) {
-            if (i != PREV_PAGE_SLOT && i != NEXT_PAGE_SLOT && i != MAILBOX_BUTTON_SLOT) {
+            if (i != PREV_PAGE_SLOT && i != NEXT_PAGE_SLOT && i != MAILBOX_SLOT) {
+
                 inventory.setItem(i, fillerItem);
             }
         }
@@ -191,7 +194,7 @@ public class GUIManager {
 
         // Add back button
         inventory.setItem(BACK_BUTTON_SLOT, createNavigationButton(
-                Material.BARRIER, 
+                Material.BARRIER,
                 plugin.getConfig().getString("gui.buttons.back", "&eBack")));
 
         // Fill remaining slots with filler item
@@ -433,21 +436,30 @@ public class GUIManager {
             meta.setLore(lore);
             itemStack.setItemMeta(meta);
         } else {
-            itemStack = mailboxItem.getItemStack().clone();
-            ItemMeta meta = itemStack.getItemMeta();
-
-            if (meta != null) {
-                List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-
-                lore.add("");
-                if (mailboxItem.getSourceInfo() != null) {
-                    lore.add(ChatColor.GRAY + mailboxItem.getSourceInfo());
-                }
-                lore.add("");
-                lore.add(ChatColor.GREEN + "Click to claim");
-
-                meta.setLore(lore);
+            ItemStack source = mailboxItem.getItemStack();
+            if (source == null) {
+                itemStack = new ItemStack(Material.BARRIER);
+                ItemMeta meta = itemStack.getItemMeta();
+                meta.setDisplayName(ChatColor.RED + "Invalid Item");
+                meta.setLore(Collections.singletonList(ChatColor.GRAY + "Item data missing"));
                 itemStack.setItemMeta(meta);
+            } else {
+                itemStack = source.clone();
+                ItemMeta meta = itemStack.getItemMeta();
+
+                if (meta != null) {
+                    List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+
+                    lore.add("");
+                    if (mailboxItem.getSourceInfo() != null) {
+                        lore.add(ChatColor.GRAY + mailboxItem.getSourceInfo());
+                    }
+                    lore.add("");
+                    lore.add(ChatColor.GREEN + "Click to claim");
+
+                    meta.setLore(lore);
+                    itemStack.setItemMeta(meta);
+                }
             }
         }
 
@@ -571,6 +583,9 @@ public class GUIManager {
             return handlePreviousPageClick(player, currentInventoryTitle);
         } else if (slot == NEXT_PAGE_SLOT) {
             return handleNextPageClick(player, currentInventoryTitle);
+        } else if (slot == MAILBOX_SLOT && currentInventoryTitle.contains("Auction House")) {
+            openMailboxGUI(player);
+            return true;
         } else if (slot == BACK_BUTTON_SLOT) {
             return handleBackButtonClick(player, currentInventoryTitle);
         } else if (slot == MAILBOX_BUTTON_SLOT && currentInventoryTitle.contains("Auction House")) {
