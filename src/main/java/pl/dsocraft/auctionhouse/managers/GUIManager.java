@@ -37,6 +37,7 @@ public class GUIManager {
     // GUI constants
     private static final int INVENTORY_SIZE = 54; // 6 rows
     private static final int ITEMS_PER_PAGE = 45; // 5 rows of items
+    private static final int MAILBOX_BUTTON_SLOT = 46;
     private static final int PREV_PAGE_SLOT = 45;
     private static final int NEXT_PAGE_SLOT = 53;
     private static final int MAILBOX_SLOT = 46; // Bottom-left slot in main GUI
@@ -121,11 +122,13 @@ public class GUIManager {
 
         // Add mailbox shortcut
         inventory.setItem(MAILBOX_SLOT, createNavigationButton(
+
                 Material.CHEST, plugin.getConfig().getString("gui.buttons.mailbox", "&eMailbox")));
 
         // Fill remaining slots with filler item
         for (int i = ITEMS_PER_PAGE; i < INVENTORY_SIZE; i++) {
             if (i != PREV_PAGE_SLOT && i != NEXT_PAGE_SLOT && i != MAILBOX_SLOT) {
+
                 inventory.setItem(i, fillerItem);
             }
         }
@@ -585,6 +588,9 @@ public class GUIManager {
             return true;
         } else if (slot == BACK_BUTTON_SLOT) {
             return handleBackButtonClick(player, currentInventoryTitle);
+        } else if (slot == MAILBOX_BUTTON_SLOT && currentInventoryTitle.contains("Auction House")) {
+            openMailboxGUI(player);
+            return true;
         }
 
         return false;
