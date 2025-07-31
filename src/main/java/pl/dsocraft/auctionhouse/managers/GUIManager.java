@@ -39,7 +39,8 @@ public class GUIManager {
     private static final int ITEMS_PER_PAGE = 45; // 5 rows of items
     private static final int PREV_PAGE_SLOT = 45;
     private static final int NEXT_PAGE_SLOT = 53;
-    private static final int BACK_BUTTON_SLOT = 49;
+    private static final int MAILBOX_SLOT = 46; // Bottom-left slot in main GUI
+    private static final int BACK_BUTTON_SLOT = 49; // Back navigation in sub GUIs
 
     public GUIManager(DSOAuctionHouse plugin) {
         this.plugin = plugin;
@@ -106,21 +107,25 @@ public class GUIManager {
         // Add navigation buttons
         if (paginator.hasPreviousPage()) {
             inventory.setItem(PREV_PAGE_SLOT, createNavigationButton(
-                    Material.ARROW, "Previous Page"));
+                    Material.ARROW, plugin.getConfig().getString("gui.buttons.previous_page", "&cPrevious Page")));
         } else {
             inventory.setItem(PREV_PAGE_SLOT, fillerItem);
         }
 
         if (paginator.hasNextPage()) {
             inventory.setItem(NEXT_PAGE_SLOT, createNavigationButton(
-                    Material.ARROW, "Next Page"));
+                    Material.ARROW, plugin.getConfig().getString("gui.buttons.next_page", "&aNext Page")));
         } else {
             inventory.setItem(NEXT_PAGE_SLOT, fillerItem);
         }
 
+        // Add mailbox shortcut
+        inventory.setItem(MAILBOX_SLOT, createNavigationButton(
+                Material.CHEST, plugin.getConfig().getString("gui.buttons.mailbox", "&eMailbox")));
+
         // Fill remaining slots with filler item
         for (int i = ITEMS_PER_PAGE; i < INVENTORY_SIZE; i++) {
-            if (i != PREV_PAGE_SLOT && i != NEXT_PAGE_SLOT) {
+            if (i != PREV_PAGE_SLOT && i != NEXT_PAGE_SLOT && i != MAILBOX_SLOT) {
                 inventory.setItem(i, fillerItem);
             }
         }
@@ -186,7 +191,7 @@ public class GUIManager {
 
         // Add back button
         inventory.setItem(BACK_BUTTON_SLOT, createNavigationButton(
-                Material.BARRIER, 
+                Material.BARRIER,
                 plugin.getConfig().getString("gui.buttons.back", "&eBack")));
 
         // Fill remaining slots with filler item
@@ -283,22 +288,34 @@ public class GUIManager {
         // Item being purchased in the center
         inventory.setItem(13, createAuctionItemStack(auctionItem, player));
 
-        // Confirmation buttons
-        String buyAllText = plugin.getConfig().getString("gui.buttons.confirm_purchase_lmb", "&aBuy All (LMB)");
-        String buyOneText = plugin.getConfig().getString("gui.buttons.confirm_purchase_rmb", "&aBuy One (RMB)");
-        String buyAmountText = plugin.getConfig().getString("gui.buttons.confirm_purchase_mmb", "&aBuy Amount (MMB)");
+        // Confirmation button setup depends on stackability
+        boolean isStackable = auctionItem.getItemStack().getMaxStackSize() > 1;
 
         ItemStack confirmButton = new ItemStack(Material.EMERALD_BLOCK);
         ItemMeta confirmMeta = confirmButton.getItemMeta();
-        confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', buyAllText));
         List<String> confirmLore = new ArrayList<>();
-        confirmLore.add(ChatColor.translateAlternateColorCodes('&', buyOneText));
-        confirmLore.add(ChatColor.translateAlternateColorCodes('&', buyAmountText));
-        confirmLore.add("");
-        confirmLore.add(ChatColor.YELLOW + "Total Price: " + 
-                ChatColor.GREEN + plugin.getMessageManager().formatPrice(auctionItem.getPriceForRemaining()));
-        confirmLore.add(ChatColor.YELLOW + "Price Per Item: " + 
-                ChatColor.GREEN + plugin.getMessageManager().formatPrice(auctionItem.getPricePerItem()));
+
+        if (isStackable) {
+            String buyAllText = plugin.getConfig().getString("gui.buttons.confirm_purchase_lmb", "&aBuy All (LMB)");
+            String buyOneText = plugin.getConfig().getString("gui.buttons.confirm_purchase_rmb", "&aBuy One (RMB)");
+            String buyAmountText = plugin.getConfig().getString("gui.buttons.confirm_purchase_mmb", "&aBuy Amount (MMB)");
+
+            confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', buyAllText));
+            confirmLore.add(ChatColor.translateAlternateColorCodes('&', buyOneText));
+            confirmLore.add(ChatColor.translateAlternateColorCodes('&', buyAmountText));
+            confirmLore.add("");
+            confirmLore.add(ChatColor.YELLOW + "Total Price: " +
+                    ChatColor.GREEN + plugin.getMessageManager().formatPrice(auctionItem.getPriceForRemaining()));
+            confirmLore.add(ChatColor.YELLOW + "Price Per Item: " +
+                    ChatColor.GREEN + plugin.getMessageManager().formatPrice(auctionItem.getPricePerItem()));
+        } else {
+            String buyItemText = plugin.getConfig().getString("gui.buttons.confirm_purchase_single", "&aBuy Item");
+            confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', buyItemText));
+            confirmLore.add("");
+            confirmLore.add(ChatColor.YELLOW + "Price: " +
+                    ChatColor.GREEN + plugin.getMessageManager().formatPrice(auctionItem.getPriceForRemaining()));
+        }
+
         confirmMeta.setLore(confirmLore);
         confirmButton.setItemMeta(confirmMeta);
         inventory.setItem(11, confirmButton);
@@ -416,21 +433,30 @@ public class GUIManager {
             meta.setLore(lore);
             itemStack.setItemMeta(meta);
         } else {
-            itemStack = mailboxItem.getItemStack().clone();
-            ItemMeta meta = itemStack.getItemMeta();
-
-            if (meta != null) {
-                List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-
-                lore.add("");
-                if (mailboxItem.getSourceInfo() != null) {
-                    lore.add(ChatColor.GRAY + mailboxItem.getSourceInfo());
-                }
-                lore.add("");
-                lore.add(ChatColor.GREEN + "Click to claim");
-
-                meta.setLore(lore);
+            ItemStack source = mailboxItem.getItemStack();
+            if (source == null) {
+                itemStack = new ItemStack(Material.BARRIER);
+                ItemMeta meta = itemStack.getItemMeta();
+                meta.setDisplayName(ChatColor.RED + "Invalid Item");
+                meta.setLore(Collections.singletonList(ChatColor.GRAY + "Item data missing"));
                 itemStack.setItemMeta(meta);
+            } else {
+                itemStack = source.clone();
+                ItemMeta meta = itemStack.getItemMeta();
+
+                if (meta != null) {
+                    List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+
+                    lore.add("");
+                    if (mailboxItem.getSourceInfo() != null) {
+                        lore.add(ChatColor.GRAY + mailboxItem.getSourceInfo());
+                    }
+                    lore.add("");
+                    lore.add(ChatColor.GREEN + "Click to claim");
+
+                    meta.setLore(lore);
+                    itemStack.setItemMeta(meta);
+                }
             }
         }
 
@@ -554,6 +580,9 @@ public class GUIManager {
             return handlePreviousPageClick(player, currentInventoryTitle);
         } else if (slot == NEXT_PAGE_SLOT) {
             return handleNextPageClick(player, currentInventoryTitle);
+        } else if (slot == MAILBOX_SLOT && currentInventoryTitle.contains("Auction House")) {
+            openMailboxGUI(player);
+            return true;
         } else if (slot == BACK_BUTTON_SLOT) {
             return handleBackButtonClick(player, currentInventoryTitle);
         }
@@ -650,7 +679,14 @@ public class GUIManager {
         }
 
         if (slot == 11) { // Confirm button
-            if (isMiddleClick) {
+            boolean isStackable = auctionItem.getItemStack().getMaxStackSize() > 1;
+
+            if (!isStackable) {
+                // Non-stackable item: always buy the whole item
+                player.closeInventory();
+                plugin.getAuctionManager().purchaseItem(player, auctionId, auctionItem.getQuantityRemaining());
+                pendingPurchases.remove(player.getUniqueId());
+            } else if (isMiddleClick) {
                 // Middle click - buy specific amount
                 player.closeInventory();
                 awaitingChatInput.add(player.getUniqueId());

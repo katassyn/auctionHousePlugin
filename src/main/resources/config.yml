@@ -20,9 +20,11 @@ gui:
     previous_page: "&cPrevious Page"
     next_page: "&aNext Page"
     back: "&eBack"
+    mailbox: "&eMailbox"
     confirm_purchase_lmb: "&aBuy All (LMB)"
     confirm_purchase_rmb: "&aBuy One (RMB)"
     confirm_purchase_mmb: "&aBuy Amount (MMB)"
+    confirm_purchase_single: "&aBuy Item"
 
 # Auction limits by rank
 limits:

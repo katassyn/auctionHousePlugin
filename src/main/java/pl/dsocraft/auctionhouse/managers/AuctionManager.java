@@ -285,7 +285,7 @@ public class AuctionManager {
 
         try (Connection conn = databaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM active_auctions WHERE seller_uuid = ? ORDER BY listed_at DESC")) {
+                     "SELECT * FROM active_auctions WHERE seller_uuid = ? AND quantity_remaining > 0 ORDER BY listed_at DESC")) {
 
             stmt.setString(1, playerUUID.toString());
 
@@ -497,8 +497,10 @@ public class AuctionManager {
      * @param sourceInfo Information about the source of the item/money.
      * @return true if successful, false otherwise.
      */
-    private boolean addToMailbox(Connection conn, UUID playerUUID, MailboxItem.Type type, 
+    private boolean addToMailbox(Connection conn, UUID playerUUID, MailboxItem.Type type,
                                 ItemStack itemStack, long moneyAmount, String sourceInfo) throws SQLException {
+        sourceInfo = sanitizeSourceInfo(sourceInfo);
+
         try (PreparedStatement stmt = conn.prepareStatement(
                 "INSERT INTO player_mailbox (player_uuid, type, item_serialized, money_amount, source_info) " +
                 "VALUES (?, ?, ?, ?, ?)")) {
@@ -511,6 +513,16 @@ public class AuctionManager {
 
             return stmt.executeUpdate() > 0;
         }
+    }
+
+    /**
+     * Removes color codes and non-ASCII characters from source info before database insertion.
+     */
+    private String sanitizeSourceInfo(String sourceInfo) {
+        if (sourceInfo == null) {
+            return "";
+        }
+        return ChatColor.stripColor(sourceInfo).replaceAll("[^\\p{ASCII}]", "");
     }
 
     /**
@@ -528,7 +540,16 @@ public class AuctionManager {
             stmt.setInt(1, quantityPurchased);
             stmt.setInt(2, auctionId);
 
-            return stmt.executeUpdate() > 0;
+            if (stmt.executeUpdate() > 0) {
+                // Remove the auction entirely if no items remain
+                try (PreparedStatement cleanup = conn.prepareStatement(
+                        "DELETE FROM active_auctions WHERE id = ? AND quantity_remaining <= 0")) {
+                    cleanup.setInt(1, auctionId);
+                    cleanup.executeUpdate();
+                }
+                return true;
+            }
+            return false;
         }
     }
 
