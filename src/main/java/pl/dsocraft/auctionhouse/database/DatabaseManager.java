@@ -41,7 +41,8 @@ public class DatabaseManager {
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        hikariConfig.setMaximumPoolSize(10); // Standard value, can be adjusted
+        hikariConfig.setMaximumPoolSize(25); // Increased for 30+ players - auction house needs good concurrency
+        hikariConfig.setMinimumIdle(12); // Ensure good idle connections for auction queries
 
         try {
             this.dataSource = new HikariDataSource(hikariConfig);

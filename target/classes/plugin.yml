@@ -1,0 +1,27 @@
+name: DSOAuctionHouse
+version: '1.0-SNAPSHOT'
+main: pl.dsocraft.auctionhouse.DSOAuctionHouse
+api-version: '1.20'
+commands:
+  ah:
+    description: Main auction house command
+    aliases: [auctionhouse]
+  sell:
+    description: Sell the item in your hand
+  checkah:
+    description: Check a player's auctions
+  ahadmin:
+    description: Admin commands for the auction house
+permissions:
+  ah.use:
+    description: Allows using the Auction House main command and buying.
+    default: true
+  ah.sell:
+    description: Allows selling items on the Auction House.
+    default: true
+  ah.find:
+    description: Allows using the /ah find command.
+    default: false
+  ah.admin:
+    description: Allows using admin commands for the Auction House.
+    default: op

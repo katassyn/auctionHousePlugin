@@ -1,0 +1,3 @@
+pl\dsocraft\auctionhouse\database\DatabaseManager$PlayerAuctionInfo.class
+pl\dsocraft\auctionhouse\commands\AuctionTabCompleter.class
+pl\dsocraft\auctionhouse\tasks\CleanupTask.class

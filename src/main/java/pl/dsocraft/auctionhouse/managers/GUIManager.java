@@ -37,7 +37,7 @@ public class GUIManager {
     // GUI constants
     private static final int INVENTORY_SIZE = 54; // 6 rows
     private static final int ITEMS_PER_PAGE = 45; // 5 rows of items
-    private static final int MAILBOX_BUTTON_SLOT = 46;
+    private static final int MAILBOX_BUTTON_SLOT = 49;
     private static final int PREV_PAGE_SLOT = 45;
     private static final int NEXT_PAGE_SLOT = 53;
     private static final int MAILBOX_SLOT = 46; // Bottom-left slot in main GUI
